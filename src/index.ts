@@ -1,4 +1,4 @@
-import { PostgresConnection } from "./databaseConnections/postgres";
+import { PostgresConnection } from "./databaseConnections/postgres/postgres";
 import { getDescription } from "./descriptions";
 import dotenv from "dotenv";
 
@@ -14,6 +14,6 @@ dotenv.config();
   });
 
   await db.connect();
-  await getDescription(db, "users");
+  await getDescription(db, "actor");
   await db.close();
 })();

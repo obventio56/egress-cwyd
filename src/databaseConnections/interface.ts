@@ -1,6 +1,8 @@
 interface IDatabase {
   connect(): Promise<void>;
   query(queryString: string): Promise<Record<string, any>>;
+  getTableMetadata(table: string, schema: string): Promise<Record<string, any>>;
+  getRandomSample(table: string, schema: string, n: number): Promise<any[]>;
   close(): Promise<void>;
 }
 
