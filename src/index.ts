@@ -1,10 +1,13 @@
-import { PostgresConnection } from "./databaseConnections/postgres/postgres";
-import { getDescription } from "./descriptions";
 import dotenv from "dotenv";
+import { PostgresConnection } from "./databaseConnections/postgres/postgres.js";
+import { getDescription } from "./descriptions.js";
+import { initSqlite } from "./sqlite.js";
 
 dotenv.config();
 
 (async () => {
+  const indexDb = await initSqlite();
+
   const db = new PostgresConnection({
     user: process.env.PG_USER as string,
     host: process.env.PG_HOST as string,
@@ -14,6 +17,6 @@ dotenv.config();
   });
 
   await db.connect();
-  await getDescription(db, "actor");
+  await getDescription(indexDb, db, "actor");
   await db.close();
 })();

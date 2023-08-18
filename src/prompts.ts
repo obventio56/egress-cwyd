@@ -1,10 +1,15 @@
-const tableDescriptionPrompt = (
+const generateExamplePrompts = (
   metadata: Record<any, any>,
-  exampleRows: any[]
+  exampleRows: any[],
+  n: number
 ) => [
   {
     role: "system",
-    content: `You are an expert data engineer and analyst helping me document tables in my database so that it's easy for all team members to understand what data a table contains, its relationship to other tables, and the context of what it means in our organization.`,
+    content: `
+    You are an expert data engineer and analyst. You are helping me build a tool that converts requests in natural language to SQL queries.
+    An important step in this process is to determine which tables in our database are relevant to the request.
+    I am going to provide you with some information about a table in our database and you are going to help me come up with example prompts that might request information from this table. 
+    `,
   },
   {
     role: "user",
@@ -20,14 +25,18 @@ const tableDescriptionPrompt = (
 
       ${JSON.stringify(exampleRows)}
 
-      Please use this information to write a paragraph documenting the table. Your response should start with a high-level description of the table 
-      and its relationship to other tables. Do your best to infer what the table means in the context of our organization but only include information
-      that you are fairly confident about. Then provide a summary of the columns in the table and the data they contain as well as primary 
-      and foreign key constraints. 
-      
-      Please respond with just this description and nothing else. Do not include any preamble or introduction. 
+      Please use this information to come up with ${n} example prompts that a end user might ask that would require querying this table to answer. 
+      Each prompt should be two to three sentences long.
+
+      Be creative and try to come up with a variety of different types of prompts. Include prompts that require aggregation, filtering, and sorting. 
+      Include prompts where this table is not the primary table of interest but rather joined in or secondary in some other way. You can use foreign key constraints to guide you as to what other tables might be related to this one.
+
+      Write with the language and style of a non-technical business user who does not know anything about sql. Do not include any references to 
+      primary or foreign keys. 
+
+      Please respond with a JSON array of strings, each string being a prompt. Do not wrap your response in a code block. Do not include any additional information in your response.
       `,
   },
 ];
 
-export { tableDescriptionPrompt };
+export { generateExamplePrompts };

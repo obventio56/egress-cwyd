@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "npm run build && node dist/index.js",
     "build": "tsc",
@@ -12,15 +13,18 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "@types/node": "^20.5.1",
+    "@types/node": "^18.17.1",
     "@types/pg": "^8.10.2",
     "tsc-watch": "^6.0.4",
     "typescript": "^5.1.6"
   },
   "dependencies": {
+    "@types/better-sqlite3": "^7.6.4",
     "axios": "^1.4.0",
+    "better-sqlite3": "^8.5.1",
     "dotenv": "^16.3.1",
     "pg": "^8.11.3",
+    "sqlite-vss": "^0.1.2",
     "ts-node": "^10.9.1"
   }
 }

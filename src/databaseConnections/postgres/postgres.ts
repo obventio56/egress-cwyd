@@ -1,9 +1,10 @@
-import { Client, QueryResult } from "pg";
-import { DatabaseConfig, IDatabase } from "../interface";
-import { metadataQueries, randomSampleQuery } from "./queries";
+import pg from "pg";
+import { DatabaseConfig, IDatabase } from "../interface.js";
+import { metadataQueries, randomSampleQuery } from "./queries.js";
+const { Client } = pg;
 
 class PostgresConnection implements IDatabase {
-  private client: Client;
+  private client: pg.Client;
 
   constructor(config: DatabaseConfig) {
     this.client = new Client(config);
