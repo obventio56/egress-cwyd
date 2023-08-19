@@ -27,7 +27,7 @@ dotenv.config();
   // await buildIndex(indexDb, db, tables);
 
   const prompt =
-    "Who are the api_customusers with the most tokens used? Please include the user's email, whether or not they have an active subscription, and the number of tokens they've used.";
+    "Who are the api_customusers with the most freewrite and peronal tutor tokens used? Please include the user's email, whether they're subscribed (using subscribed_until), and the number of tokens they've used. Order by tokens used descending with nulls last.";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
   const queryText = generateQuery(prompt, relevantTables, "postgres");

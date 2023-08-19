@@ -8,12 +8,12 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
   const embeddings = await embeddingsAPI(prompt);
   const knnWithDistance = await findKNN(indexDb, embeddings[0].embedding);
 
-  const filteredKMeans = kMeans(knnWithDistance, 2);
-  console.log(knnWithDistance, filteredKMeans);
+  // const filteredKMeans = kMeans(knnWithDistance, 2);
+  console.log(knnWithDistance);
 
   const relevantTables = getTablesInRowIdArray(
     indexDb,
-    filteredKMeans.map((k: any) => k.rowid),
+    knnWithDistance.map((k: any) => k.rowid),
     10
   );
 
@@ -43,18 +43,18 @@ export const createIndexForTable = async (
   const tableDescription = await db.getTableDescription(tableName, tableSchema);
 
   // Wrap in prompt
-  const prompt = generateExamplePrompts(tableDescription, 20);
+  // const prompt = generateExamplePrompts(tableDescription, 20);
 
-  // Send to open AI
-  const examplePromptRes = await chatAPI(prompt);
-  const examplePrompts = JSON.parse(examplePromptRes);
+  // // Send to open AI
+  // const examplePromptRes = await chatAPI(prompt);
+  // const examplePrompts = JSON.parse(examplePromptRes);
 
   // Get embeddings
-  const embeddings = await embeddingsAPI(examplePrompts);
+  const embeddings = await embeddingsAPI(tableDescription);
 
   const embeddingsWithText = embeddings.map((e: any, i: number) => ({
     embedding: e.embedding,
-    text: examplePrompts[i],
+    text: tableDescription,
   }));
 
   // Insert into sqlite
