@@ -27,13 +27,15 @@ dotenv.config();
   // await buildIndex(indexDb, db, tables);
 
   const prompt =
-    "Which movies made the most money in rentals per minute of screen time? Please include the total number of rentals, cost per rental, and the length of the movie for each film you return.";
+    "Which users that are subscribed to paid haven't had a session in the past 15 days?";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
-  const query = await chatAPI(
-    generateQuery(prompt, relevantTables, "postgres"),
-    "gpt-4"
-  );
+  console.log(relevantTables[0], relevantTables.length);
+
+  const queryText = generateQuery(prompt, relevantTables, "postgres");
+  console.log(JSON.stringify(queryText).length);
+
+  const query = await chatAPI(queryText, "gpt-4");
 
   console.log(query);
   const result = await db.query(query);

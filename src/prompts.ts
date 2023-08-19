@@ -1,3 +1,5 @@
+import yaml from "js-yaml";
+
 export const generateExamplePrompts = (
   metadata: Record<any, any>,
   exampleRows: any[],
@@ -19,11 +21,11 @@ export const generateExamplePrompts = (
 
       Meta-data results:
 
-      ${JSON.stringify(metadata)}
+      ${yaml.dump(metadata)}
 
       Example rows:
 
-      ${JSON.stringify(exampleRows)}
+      ${yaml.dump(exampleRows).slice(0, 3000)}
 
       Please use this information to come up with ${n} example prompts that a end user might ask that would require querying this table to answer. 
       Each prompt should be two to three sentences long.
@@ -55,8 +57,8 @@ export const generateQuery = (
       Here is the prompt:
       ${prompt} 
 
-      Here is information about tables that might be relevant in the form of a JSON array of objects:
-      ${JSON.stringify(tableData)}
+      Here is information about tables that might be relevant in yaml format:
+      ${yaml.dump(tableData).slice(0, 15000)}
 
       For each table, i've included information about its schema, primary keys, and foreign key relations.
       I've also included a few example rows from each table.
@@ -64,6 +66,8 @@ export const generateQuery = (
       necessary for the query. 
 
       Not all tables must be used for the query. It is part of your job to determine which tables are necessary and which are not. You should use as few tables as possible while still answering the query.
+
+      Only use columns that you are certain exist. If a user asks for a column but it is not present in one of the relevant tables or can be calculated, do not include it.
 
       Please use this information to write a ${sqlDialect} sql query that best satisfies the prompt. Please respond with just the query. Do not wrap your response in a code block. Do not include any additional information in your response.
       `,

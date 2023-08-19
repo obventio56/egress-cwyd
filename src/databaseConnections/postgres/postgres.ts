@@ -7,7 +7,7 @@ class PostgresConnection implements IDatabase {
   private client: pg.Client;
 
   constructor(config: DatabaseConfig) {
-    this.client = new Client(config);
+    this.client = new Client({ ...config, ssl: { rejectUnauthorized: false } });
   }
 
   public async connect(): Promise<void> {

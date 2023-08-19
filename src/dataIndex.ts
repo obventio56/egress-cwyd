@@ -9,16 +9,22 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
   const knnWithDistance = await findKNN(indexDb, embeddings[0].embedding);
   const filteredKMeans = kMeans(knnWithDistance, 2);
 
-  console.log(knnWithDistance, filteredKMeans);
-
   const relevantTables = getTablesInRowIdArray(
     indexDb,
-    filteredKMeans.map((k: any) => k.rowid)
+    filteredKMeans.map((k: any) => k.rowid),
+    3
   );
 
-  console.log(relevantTables);
+  const parsedRelevantTables = relevantTables.map((rt: any) => ({
+    ...rt,
+    metadata: JSON.parse(rt.metadata),
+    row_examples: JSON.parse(rt.row_examples),
+  }));
 
-  return relevantTables;
+
+  console.log(parsedRelevantTables.length);
+
+  return parsedRelevantTables;
 };
 
 export const createIndexForTable = async (
@@ -29,10 +35,10 @@ export const createIndexForTable = async (
 ) => {
   // Gather info: schema + 3 examples
   const metadata = await db.getTableMetadata(tableName, tableSchema);
-  const examples = await db.getRandomSample(tableName, tableSchema, 5);
+  const examples = await db.getRandomSample(tableName, tableSchema, 1);
 
   // Wrap in prompt
-  const prompt = generateExamplePrompts(metadata, examples, 10);
+  const prompt = generateExamplePrompts(metadata, examples, 20);
 
   // Send to open AI
   const examplePromptRes = await chatAPI(prompt);
