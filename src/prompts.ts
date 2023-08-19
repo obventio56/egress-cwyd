@@ -1,10 +1,6 @@
 import yaml from "js-yaml";
 
-export const generateExamplePrompts = (
-  metadata: Record<any, any>,
-  exampleRows: any[],
-  n: number
-) => [
+export const generateExamplePrompts = (tableDescription: string, n: number) => [
   {
     role: "system",
     content: `
@@ -16,29 +12,27 @@ export const generateExamplePrompts = (
   {
     role: "user",
     content: `
-      I have the result of a few meta-data queries describing the table's structure, primary keys, and foreign key relations among other things. 
-      I also have several example rows selected at random from the table. 
-
-      Meta-data results:
-
-      ${yaml.dump(metadata)}
-
-      Example rows:
-
-      ${yaml.dump(exampleRows)}
+      Here is some information about a table:
+      ${tableDescription}
 
       Please use this information to come up with ${n} example prompts that a end user might ask that would require querying this table to answer. 
       Each prompt should be two to three sentences long.
 
       Be creative and try to come up with a variety of different types of prompts. Include prompts that require aggregation, filtering, and sorting. 
       
-      Write with the language and style of a non-technical business user who does not know anything about sql. Do not include any references to 
-      primary or foreign keys. 
+      Write with the language and style of a non-technical business user who does not know anything about sql. 
 
       Please respond with a JSON array of strings, each string being a prompt. Reply with just the array. Do not put the array inside an object as a property. Do not wrap your response in a code block. Do not include any additional information in your response.
       `,
   },
 ];
+
+const tableDataSubPrompt = (tableInfo: any) => `
+${tableInfo.tableDescription}
+
+relevantCount: ${tableInfo.relevanceCount}
+
+`;
 
 export const generateQuery = (
   prompt: string,
@@ -57,13 +51,10 @@ export const generateQuery = (
       Here is the prompt:
       ${prompt} 
 
-      Here is information about tables that might be relevant in yaml format:
-      ${yaml.dump(tableData)}
+      Here is information about relevant tables:
+      ${tableData.map((td) => tableDataSubPrompt(td)).join("")}
 
-      For each table, i've included information about its schema, primary keys, and foreign key relations.
-      I've also included a few example rows from each table.
-      I've also included how_likely_a_table_is_to_be_relevant which is my best guess about how likely it is that the table will be 
-      necessary for the query. 
+      The relevanceCount of each table is my best guess about how likely it is that the table will be necessary for the query. 
 
       Not all tables must be used for the query. It is part of your job to determine which tables are necessary and which are not. You should use as few tables as possible while still answering the query.
 

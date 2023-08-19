@@ -22,11 +22,12 @@ dotenv.config();
 
   await db.connect();
 
-  const indexDb = await initSqlite(true);
-  const tables: any = await db.getTables();
-  await buildIndex(indexDb, db, tables);
+  const indexDb = await initSqlite(false);
+  // const tables: any = await db.getTables();
+  // await buildIndex(indexDb, db, tables);
 
-  const prompt = "Who are the api_customusers with the most tokens used?";
+  const prompt =
+    "Who are the api_customusers with the most tokens used? Please include the user's email and whether or not they have an active subscription.";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
   const queryText = generateQuery(prompt, relevantTables, "postgres");

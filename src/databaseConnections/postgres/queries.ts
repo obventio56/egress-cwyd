@@ -1,4 +1,6 @@
-const schemaQuery = (table: string, schema: string) => `
+import { table } from "console";
+
+export const schemaQuery = (table: string, schema: string) => `
 SELECT 
     column_name, 
     data_type, 
@@ -9,7 +11,7 @@ FROM information_schema.columns
 WHERE table_name = '${table}' AND table_schema = '${schema}';
 `;
 
-const primaryKeyQuery = (table: string, schema: string) => `
+export const primaryKeyQuery = (table: string, schema: string) => `
 SELECT 
     conname AS constraint_name, 
     pg_attribute.attname AS column_name
@@ -21,7 +23,7 @@ WHERE pg_class.relname = '${table}'
 AND contype = 'p';
 `;
 
-const foreignKeyQuery = (table: string, schema: string) => `
+export const foreignKeyQuery = (table: string, schema: string) => `
 SELECT
     conname AS constraint_name,
     a.attname AS column_name,
@@ -40,11 +42,16 @@ AND
 
 `;
 
-const randomSampleQuery = (table: string, schema: string, n: number) => `
+export const randomSampleQuery = (table: string, schema: string, n: number) => `
 SELECT * 
 FROM ${schema}.${table} 
 ORDER BY RANDOM() 
 LIMIT ${n};
+`;
+
+export const countRows = (table: string, schema: string) => `
+SELECT COUNT(*) as count
+FROM ${schema}.${table};
 `;
 
 const metadataQueries: Record<string, Function> = {
@@ -53,4 +60,4 @@ const metadataQueries: Record<string, Function> = {
   "foreign key constraints": foreignKeyQuery,
 };
 
-export { metadataQueries, randomSampleQuery };
+export { metadataQueries };

@@ -16,38 +16,11 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
   );
 
   const parsedRelevantTables = relevantTables.map((rt: any) => ({
-    ...rt,
-    metadata: JSON.parse(rt.metadata),
-    row_examples: JSON.parse(rt.row_examples),
+    tableDescription: rt.table_description,
+    relevanceCount: rt.count,
   }));
 
   return parsedRelevantTables;
-};
-
-/**
- * Ensure that example row columns are never unworkably long
- *
- * @param exampleRows
- */
-
-const MAX_COLUMN_LENGTH = 140;
-const truncateExampleColumns = (exampleRows: any[]) => {
-  return exampleRows.map((row) => {
-    return Object.fromEntries(
-      Object.entries(row).map(([key, value]: any) => {
-        if (typeof value === "string" && value.length > MAX_COLUMN_LENGTH) {
-          return [
-            key,
-            `${value.slice(
-              0,
-              MAX_COLUMN_LENGTH
-            )}... column continues but truncated for brevity`,
-          ];
-        }
-        return [key, value];
-      })
-    );
-  });
 };
 
 export const createIndexForTable = async (
@@ -57,12 +30,10 @@ export const createIndexForTable = async (
   tableSchema: string
 ) => {
   // Gather info: schema + 3 examples
-  const metadata = await db.getTableMetadata(tableName, tableSchema);
-  const examples = await db.getRandomSample(tableName, tableSchema, 3);
-  const truncatedExamples = truncateExampleColumns(examples);
+  const tableDescription = await db.getTableDescription(tableName, tableSchema);
 
   // Wrap in prompt
-  const prompt = generateExamplePrompts(metadata, truncatedExamples, 20);
+  const prompt = generateExamplePrompts(tableDescription, 20);
 
   // Send to open AI
   const examplePromptRes = await chatAPI(prompt);
@@ -81,8 +52,7 @@ export const createIndexForTable = async (
     indexDb,
     tableName,
     "public",
-    metadata,
-    examples,
+    tableDescription,
     embeddingsWithText
   );
 };

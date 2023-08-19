@@ -24,8 +24,7 @@ export const initSqlite = async (rebuild = false) => {
         table_id INTEGER PRIMARY KEY AUTOINCREMENT,
         table_name TEXT NOT NULL,
         table_schema TEXT NOT NULL,
-        metadata TEXT,
-        row_examples TEXT
+        table_description TEXT
     );
     
     -- Create the prompt_embeddings virtual table using sqlite-vss
@@ -52,12 +51,11 @@ export const insertEmbeddings = (
   db: any,
   tableName: string,
   tableSchema: string,
-  metadata: Record<string, any>,
-  rowExamples: any[],
+  tableDescription: string,
   embeddings: any[]
 ) => {
   const insertIntoTables = db.prepare(
-    `INSERT INTO tables (table_name, table_schema, metadata, row_examples) VALUES (?, ?, ?, ?)`
+    `INSERT INTO tables (table_name, table_schema, table_description) VALUES (?, ?, ?)`
   );
   const insertIntoPromptEmbeddings = db.prepare(
     `INSERT INTO prompt_embeddings (rowid, embedding) VALUES (?, ?)`
@@ -75,8 +73,7 @@ export const insertEmbeddings = (
     const tableID = insertIntoTables.run(
       tableData.tableName,
       tableData.tableSchema,
-      JSON.stringify(tableData.metadata),
-      JSON.stringify(tableData.rowExamples)
+      tableData.tableDescription
     ).lastInsertRowid;
 
     for (const prompt of embeddings) {
@@ -92,7 +89,7 @@ export const insertEmbeddings = (
 
   // Execute transaction
   try {
-    transaction({ tableName, tableSchema, metadata, rowExamples }, embeddings);
+    transaction({ tableName, tableSchema, tableDescription }, embeddings);
   } catch (err) {
     console.error("Transaction failed:", err);
   }
@@ -112,11 +109,11 @@ export const getTablesInRowIdArray = (
 ) => {
   // Prepare the SELECT statement
   const selectStmt = db.prepare(`
-      SELECT t.table_name, t.table_schema, t.metadata, t.row_examples, COUNT(tpe.rowid) as count
+      SELECT t.table_name, t.table_schema, t.table_description, COUNT(tpe.rowid) as count
       FROM table_prompt_embeddings AS tpe
       JOIN tables AS t ON tpe.table_id = t.table_id
       WHERE tpe.rowid IN (${rowIdsArray.map(() => "?").join(", ")})
-      GROUP BY t.table_name, t.table_schema, t.metadata, t.row_examples
+      GROUP BY t.table_name, t.table_schema, t.table_description
       ORDER BY count DESC
       LIMIT ${limit};
   `);

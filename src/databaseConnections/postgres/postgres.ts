@@ -1,6 +1,13 @@
 import pg from "pg";
+import yaml from "js-yaml";
 import { DatabaseConfig, IDatabase } from "../interface.js";
-import { metadataQueries, randomSampleQuery } from "./queries.js";
+import {
+  countRows,
+  metadataQueries,
+  randomSampleQuery,
+  schemaQuery,
+} from "./queries.js";
+import { truncateExampleColumns } from "../../utils.js";
 const { Client } = pg;
 
 class PostgresConnection implements IDatabase {
@@ -54,6 +61,40 @@ class PostgresConnection implements IDatabase {
   public async getRandomSample(table: string, schema: string, n: number) {
     const result = await this.query(randomSampleQuery(table, schema, n));
     return result as any[];
+  }
+
+  public async getTableDescription(table: string, schema: string) {
+    const numberOfRows = await this.query(countRows(table, schema));
+
+    // Get schema information as an object
+    const schemaInformation = await this.query(schemaQuery(table, schema));
+    const schemaObject = Object.fromEntries(
+      schemaInformation.map((row: any) => {
+        const columnName = row.column_name;
+        const schemaInfo = {
+          ...row,
+        };
+        delete schemaInfo.column_name;
+
+        return [columnName, schemaInfo];
+      })
+    );
+
+    const exampleRows: any = await this.query(
+      randomSampleQuery(table, schema, 2)
+    );
+    // Ensure columns in example rows are too long and could break token limits
+    const truncatedExamples = truncateExampleColumns(exampleRows);
+
+    return `A table named ${table} exists in the ${schema} schema. It has a total of ${
+      numberOfRows[0].count
+    } rows.
+
+The ${table} table has the following schema:
+  ${yaml.dump(schemaObject)}
+
+A few example rows from the ${table} table are:
+  ${yaml.dump(truncatedExamples)}`;
   }
 
   public async close(): Promise<void> {

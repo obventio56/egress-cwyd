@@ -3,6 +3,7 @@ interface IDatabase {
   query(queryString: string): Promise<Record<string, any>>;
   getTableMetadata(table: string, schema: string): Promise<Record<string, any>>;
   getRandomSample(table: string, schema: string, n: number): Promise<any[]>;
+  getTableDescription(table: string, schema: string): Promise<string>;
   close(): Promise<void>;
 }
 
