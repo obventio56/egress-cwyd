@@ -22,18 +22,15 @@ dotenv.config();
 
   await db.connect();
 
-  const indexDb = await initSqlite(false);
-  // const tables: any = await db.getTables();
-  // await buildIndex(indexDb, db, tables);
+  const indexDb = await initSqlite(true);
+  const tables: any = await db.getTables();
+  await buildIndex(indexDb, db, tables);
 
-  const prompt =
-    "Which users that are subscribed to paid haven't had a session in the past 15 days?";
+  const prompt = "Who are the api_customusers with the most tokens used?";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
-  console.log(relevantTables[0], relevantTables.length);
 
   const queryText = generateQuery(prompt, relevantTables, "postgres");
-  console.log(JSON.stringify(queryText).length);
 
   const query = await chatAPI(queryText, "gpt-4");
 

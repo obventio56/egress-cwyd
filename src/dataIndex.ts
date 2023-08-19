@@ -12,7 +12,7 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
   const relevantTables = getTablesInRowIdArray(
     indexDb,
     filteredKMeans.map((k: any) => k.rowid),
-    3
+    5
   );
 
   const parsedRelevantTables = relevantTables.map((rt: any) => ({
@@ -20,7 +20,6 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
     metadata: JSON.parse(rt.metadata),
     row_examples: JSON.parse(rt.row_examples),
   }));
-
 
   console.log(parsedRelevantTables.length);
 
@@ -35,7 +34,7 @@ export const createIndexForTable = async (
 ) => {
   // Gather info: schema + 3 examples
   const metadata = await db.getTableMetadata(tableName, tableSchema);
-  const examples = await db.getRandomSample(tableName, tableSchema, 1);
+  const examples = await db.getRandomSample(tableName, tableSchema, 3);
 
   // Wrap in prompt
   const prompt = generateExamplePrompts(metadata, examples, 20);

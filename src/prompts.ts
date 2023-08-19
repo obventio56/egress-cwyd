@@ -25,7 +25,7 @@ export const generateExamplePrompts = (
 
       Example rows:
 
-      ${yaml.dump(exampleRows).slice(0, 3000)}
+      ${yaml.dump(exampleRows)}
 
       Please use this information to come up with ${n} example prompts that a end user might ask that would require querying this table to answer. 
       Each prompt should be two to three sentences long.
@@ -58,7 +58,7 @@ export const generateQuery = (
       ${prompt} 
 
       Here is information about tables that might be relevant in yaml format:
-      ${yaml.dump(tableData).slice(0, 15000)}
+      ${yaml.dump(tableData)}
 
       For each table, i've included information about its schema, primary keys, and foreign key relations.
       I've also included a few example rows from each table.
