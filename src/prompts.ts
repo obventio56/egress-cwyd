@@ -1,4 +1,4 @@
-const generateExamplePrompts = (
+export const generateExamplePrompts = (
   metadata: Record<any, any>,
   exampleRows: any[],
   n: number
@@ -29,14 +29,45 @@ const generateExamplePrompts = (
       Each prompt should be two to three sentences long.
 
       Be creative and try to come up with a variety of different types of prompts. Include prompts that require aggregation, filtering, and sorting. 
-      Include prompts where this table is not the primary table of interest but rather joined in or secondary in some other way. You can use foreign key constraints to guide you as to what other tables might be related to this one.
-
+      
       Write with the language and style of a non-technical business user who does not know anything about sql. Do not include any references to 
       primary or foreign keys. 
 
-      Please respond with a JSON array of strings, each string being a prompt. Do not wrap your response in a code block. Do not include any additional information in your response.
+      Please respond with a JSON array of strings, each string being a prompt. Reply with just the array. Do not put the array inside an object as a property. Do not wrap your response in a code block. Do not include any additional information in your response.
       `,
   },
 ];
 
-export { generateExamplePrompts };
+export const generateQuery = (
+  prompt: string,
+  tableData: any[],
+  sqlDialect: string
+) => [
+  {
+    role: "system",
+    content: `
+    You are an expert data engineer and analyst. Your job is to help me write ${sqlDialect} sql to query my database. I will provide you with a prompt as well as information 
+    about relevant tables and you should respond with the sql query that best satisfies the prompt.`,
+  },
+  {
+    role: "user",
+    content: `
+      Here is the prompt:
+      ${prompt} 
+
+      Here is information about tables that might be relevant in the form of a JSON array of objects:
+      ${JSON.stringify(tableData)}
+
+      For each table, i've included information about its schema, primary keys, and foreign key relations.
+      I've also included a few example rows from each table.
+      I've also included how_likely_a_table_is_to_be_relevant which is my best guess about how likely it is that the table will be 
+      necessary for the query. 
+
+      Not all tables must be used for the query. It is part of your job to determine which tables are necessary and which are not. You should use as few tables as possible while still answering the query.
+
+      Please use this information to write a ${sqlDialect} sql query that best satisfies the prompt. Please respond with just the query. Do not wrap your response in a code block. Do not include any additional information in your response.
+      `,
+  },
+];
+
+//Include prompts where this table is not the primary table of interest but rather joined in or secondary in some other way. You can use foreign key constraints to guide you as to what other tables might be related to this one.

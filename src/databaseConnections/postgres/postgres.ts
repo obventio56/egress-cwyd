@@ -29,6 +29,17 @@ class PostgresConnection implements IDatabase {
     }
   }
 
+  public async getTables(): Promise<Record<string, any>> {
+    const query = `
+      SELECT table_schema, table_name 
+      FROM information_schema.tables 
+      WHERE table_schema NOT IN ('pg_catalog', 'information_schema') 
+      AND table_type = 'BASE TABLE' 
+      ORDER BY table_schema, table_name;
+    `;
+    return await this.query(query);
+  }
+
   public async getTableMetadata(table: string, schema: string) {
     let metadata = {};
 
