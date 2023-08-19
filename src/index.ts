@@ -29,7 +29,6 @@ dotenv.config();
   const prompt = "Who are the api_customusers with the most tokens used?";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
-
   const queryText = generateQuery(prompt, relevantTables, "postgres");
 
   const query = await chatAPI(queryText, "gpt-4");

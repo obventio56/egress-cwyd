@@ -21,9 +21,33 @@ export const evaluatePrompt = async (indexDb: any, prompt: any) => {
     row_examples: JSON.parse(rt.row_examples),
   }));
 
-  console.log(parsedRelevantTables.length);
-
   return parsedRelevantTables;
+};
+
+/**
+ * Ensure that example row columns are never unworkably long
+ *
+ * @param exampleRows
+ */
+
+const MAX_COLUMN_LENGTH = 140;
+const truncateExampleColumns = (exampleRows: any[]) => {
+  return exampleRows.map((row) => {
+    return Object.fromEntries(
+      Object.entries(row).map(([key, value]: any) => {
+        if (typeof value === "string" && value.length > MAX_COLUMN_LENGTH) {
+          return [
+            key,
+            `${value.slice(
+              0,
+              MAX_COLUMN_LENGTH
+            )}... column continues but truncated for brevity`,
+          ];
+        }
+        return [key, value];
+      })
+    );
+  });
 };
 
 export const createIndexForTable = async (
@@ -35,9 +59,10 @@ export const createIndexForTable = async (
   // Gather info: schema + 3 examples
   const metadata = await db.getTableMetadata(tableName, tableSchema);
   const examples = await db.getRandomSample(tableName, tableSchema, 3);
+  const truncatedExamples = truncateExampleColumns(examples);
 
   // Wrap in prompt
-  const prompt = generateExamplePrompts(metadata, examples, 20);
+  const prompt = generateExamplePrompts(metadata, truncatedExamples, 20);
 
   // Send to open AI
   const examplePromptRes = await chatAPI(prompt);
@@ -67,23 +92,52 @@ export const buildIndex = async (
   db: IDatabase,
   tables: any[]
 ) => {
-  let processedTables = 0;
+  let failedTables = [];
+  const allowedRetries = 1;
+  let retryCount = 0;
 
-  for (const table of tables) {
+  let idx = 0;
+  while (idx < tables.length) {
+    const table = tables[idx];
+
     // Allow status monitoring
-    const percentageDone = (processedTables / tables.length) * 100;
+    const percentageDone = (idx / tables.length) * 100;
     process.stdout.write(
       `\r${percentageDone.toFixed(2)}% done -- working on ${
         table.table_name
       }\x1B[K`
     );
 
-    await createIndexForTable(
-      indexDb,
-      db,
-      table.table_name,
-      table.table_schema
-    );
-    processedTables += 1;
+    // Attempt to create index for table
+    try {
+      await createIndexForTable(
+        indexDb,
+        db,
+        table.table_name,
+        table.table_schema
+      );
+    } catch (err) {
+      // If it fails, retry, within allowed retry count. Sometimes OpenAI doesn't return the proper json or there is some other fluke.
+      if (retryCount < allowedRetries) {
+        retryCount += 1;
+        console.error(
+          `Error creating index for ${table.table_name} -- retrying...`
+        );
+        continue;
+      }
+
+      // If retry count exceeded, log error and move on
+      console.error(
+        `Exceeded retry attempt limit for ${table.table_name}:`,
+        err
+      );
+      failedTables.push(table);
+    }
+
+    // Reset retry count and move to next table
+    retryCount = 0;
+    idx += 1;
   }
+
+  console.log("Index complete with failed tables: ", failedTables);
 };
