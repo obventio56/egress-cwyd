@@ -7,12 +7,22 @@ import { findKNN, getTablesInRowIdArray, insertEmbeddings } from "./sqlite.js";
 export const evaluatePrompt = async (indexDb: any, prompt: any) => {
   const embeddings = await embeddingsAPI(prompt);
   const knnWithDistance = await findKNN(indexDb, embeddings[0].embedding);
+
   const filteredKMeans = kMeans(knnWithDistance, 2);
+  console.log(knnWithDistance, filteredKMeans);
 
   const relevantTables = getTablesInRowIdArray(
     indexDb,
     filteredKMeans.map((k: any) => k.rowid),
-    5
+    10
+  );
+
+  console.log(
+    relevantTables.map((rt: any) => ({
+      table_name: rt.table_name,
+      table_schema: rt.table_schema,
+      count: rt.count,
+    }))
   );
 
   const parsedRelevantTables = relevantTables.map((rt: any) => ({

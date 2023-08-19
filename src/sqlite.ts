@@ -97,7 +97,7 @@ export const insertEmbeddings = (
 
 export const findKNN = (db: any, embedding: any[]) => {
   const selectKNN = db.prepare(
-    `select rowid, distance from prompt_embeddings where vss_search(embedding, ?) limit 100;`
+    `select rowid, distance from prompt_embeddings where vss_search(embedding, ?) limit 200;`
   );
   return selectKNN.all(JSON.stringify(embedding));
 };

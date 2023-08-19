@@ -27,7 +27,7 @@ dotenv.config();
   // await buildIndex(indexDb, db, tables);
 
   const prompt =
-    "Who are the api_customusers with the most tokens used? Please include the user's email and whether or not they have an active subscription.";
+    "Who are the api_customusers with the most tokens used? Please include the user's email, whether or not they have an active subscription, and the number of tokens they've used.";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
   const queryText = generateQuery(prompt, relevantTables, "postgres");
