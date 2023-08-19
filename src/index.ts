@@ -27,7 +27,7 @@ dotenv.config();
   // await buildIndex(indexDb, db, tables);
 
   const prompt =
-    "Which first name has been in the most movies? It is ok if the name corresponds to several different actors. I just want to know which name is most common.";
+    "Which movies made the most money in rentals per minute of screen time? Please include the total number of rentals, cost per rental, and the length of the movie for each film you return.";
   const relevantTables = await evaluatePrompt(indexDb, prompt);
 
   const query = await chatAPI(
